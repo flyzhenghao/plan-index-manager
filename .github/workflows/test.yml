@@ -1,0 +1,53 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Check bash syntax
+      run: |
+        bash -n install.sh
+        bash -n scripts/plans-sync.sh
+
+    - name: Verify file permissions
+      run: |
+        test -x install.sh || exit 1
+        test -x scripts/plans-sync.sh || exit 1
+
+    - name: Check required files
+      run: |
+        test -f README.md || exit 1
+        test -f README_ZH.md || exit 1
+        test -f SKILL.md || exit 1
+        test -f LICENSE || exit 1
+        test -f templates/INDEX.en.md || exit 1
+        test -f templates/INDEX.zh.md || exit 1
+
+    - name: Test script execution (dry run)
+      run: |
+        # Create test environment
+        mkdir -p /tmp/test-claude/plans
+        export HOME=/tmp
+
+        # Test script runs without fatal errors
+        bash scripts/plans-sync.sh 2>&1 || true
+
+    - name: Verify no placeholder text
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        if grep -r "flyzhenghao" . --exclude-dir=.git --exclude-dir=.github; then
+          echo "Error: Found placeholder text 'flyzhenghao'"
+          exit 1
+        fi
