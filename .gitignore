@@ -14,3 +14,8 @@ test/
 # Temporary files
 *.tmp
 .index-temp.md
+
+# Private/local files (not for public repo)
+COMMUNITY_POSTS.md
+RELEASE_SUMMARY.md
+PACKAGE_SUMMARY.txt
